@@ -1,9 +1,8 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, Default, JsonSchema)]
 pub struct User {
-    pub name: String,
+    pub id: Uuid,
+    pub name: Option<String>,
     pub nickname: String,
     pub mail: String,
     pub password: String,

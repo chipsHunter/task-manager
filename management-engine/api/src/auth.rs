@@ -1,16 +1,17 @@
 use axum::{
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
-use models::user::User;
+use controllers::user::UserController;
+use models::{dto::user::UserGet, user::User};
 use serde::{Deserialize, Serialize};
-use shared::response::ApiResponse;
+use shared::response::{ApiResponse, Message};
+use sqlx::PgPool;
 
-pub fn auth_routes() -> Router {
-    Router::new().route("/login", post(login)) // Добавляем маршрут логина
-}
-
-async fn login(Json(payload): Json<User>) -> ApiResponse {
-    // Здесь могла быть проверка логина, но пока просто возвращаем фиктивный токен
-    ApiResponse::Created
+pub async fn login(State(pool): State<PgPool>, Json(payload): Json<UserGet>) -> impl IntoResponse {
+    let mut conn = pool.acquire().await.unwrap();
+    UserController::login_user(&mut conn, payload).await
 }

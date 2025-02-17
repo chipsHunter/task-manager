@@ -8,7 +8,7 @@ use serde::Serialize;
 // here we show a type that implements Serialize + Send
 #[derive(Serialize)]
 pub struct Message {
-    message: String,
+    pub message: String,
 }
 
 pub enum ApiResponse {
@@ -16,6 +16,7 @@ pub enum ApiResponse {
     Created,
     BadRequest,
     JsonData(Vec<Message>),
+    InternalServerError(String),
 }
 
 impl IntoResponse for ApiResponse {
@@ -25,6 +26,11 @@ impl IntoResponse for ApiResponse {
             Self::Created => (StatusCode::CREATED).into_response(),
             Self::BadRequest => (StatusCode::BAD_REQUEST).into_response(),
             Self::JsonData(data) => (StatusCode::OK, Json(data)).into_response(),
+            Self::InternalServerError(err_msg) => (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(vec![Message { message: err_msg }]),
+            )
+                .into_response(),
         }
     }
 }

@@ -1,15 +1,16 @@
 use std::{env, time::Duration};
 
-use api::auth::auth_routes;
+use api::auth::login;
 use axum::{
     extract::{FromRef, FromRequestParts, State},
     http::{request::Parts, StatusCode},
-    routing::get,
+    routing::{get, post},
     Router,
 };
 use dotenv::dotenv;
 use sqlx::postgres::{PgPool, PgPoolOptions};
 use tokio::net::TcpListener;
+use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 // we can extract the connection pool with `State`
 async fn using_connection_pool_extractor(
@@ -32,6 +33,14 @@ where
 async fn main() {
     dotenv().ok();
 
+    tracing_subscriber::registry()
+        .with(
+            tracing_subscriber::EnvFilter::try_from_default_env()
+                .unwrap_or_else(|_| format!("{}=debug", env!("CARGO_CRATE_NAME")).into()),
+        )
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     let pool = PgPoolOptions::new()
         .max_connections(5)
         .acquire_timeout(Duration::from_secs(3))
@@ -41,7 +50,7 @@ async fn main() {
 
     // build our application with some routes
     let app = Router::new()
-        //.nest("/auth", auth_routes())
+        .route("/login", post(login))
         .route(
             "/",
             get(using_connection_pool_extractor).post(using_connection_pool_extractor),
