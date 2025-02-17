@@ -4,3 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+controllers = { path = "../controllers" }
+clients = { path = "../clients" }
+shared = { path = "../shared" }
+models = { path = "../models" }
+axum = "0.8.1"
+schemars = "0.8.21"
+serde = "1.0.210"
+serde_json = "1.0.128"
+tokio = { version = "1.40.0", features = ["full"] }
