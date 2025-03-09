@@ -17,3 +17,5 @@ sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "any", "postgres",
 dotenv = "0.15.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+log = "0.4.25"
+tower-http = { version = "0.5", features = ["cors"] }

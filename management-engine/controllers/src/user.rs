@@ -13,7 +13,7 @@ impl UserController {
             }
         }
         match UserClient::create_user(user, conn).await {
-            Ok(val) => ApiResponse::Created,
+            Ok(val) => ApiResponse::OK,
             Err(error) => ApiResponse::InternalServerError(error.to_string()),
         }
     }
