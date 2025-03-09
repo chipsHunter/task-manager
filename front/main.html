@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Auth System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/ready.css">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center mb-4">
+                <h1 class="display-4">Welcome</h1>
+                <div class="mt-4">
+                    <button class="btn btn-primary btn-lg mr-2" data-toggle="modal" data-target="#loginModal">Войти</button>
+                    <button class="btn btn-success btn-lg" data-toggle="modal" data-target="#registerModal">Регистрация</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Авторизация</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="loginForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="mail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Войти</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Регистрация</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="registerForm">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Никнейм</label>
+                            <input type="text" name="nickname" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="mail" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Пароль</label>
+                            <input type="password" name="password" class="form-control" required>
+                            <small id="passwordHelp" class="form-text text-muted"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Повторите пароль</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                            <small id="confirmPasswordHelp" class="form-text text-muted"></small>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Зарегистрироваться</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/core/jquery.3.2.1.min.js"></script>
+    <script src="assets/js/core/bootstrap.min.js"></script>
+    
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = e.target.name.value;
+            const nickname = e.target.nickname.value;
+            const mail = e.target.mail.value;
+            const password = e.target.password.value;
+            const confirmPassword = e.target.confirm_password.value;
+            
+            const passwordHelp = document.getElementById('passwordHelp');
+            const confirmPasswordHelp = document.getElementById('confirmPasswordHelp');
+            
+            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
+            
+            if (!passwordRegex.test(password)) {
+                passwordHelp.textContent = 'Пароль должен содержать минимум 8 символов, включая цифры, строчные и заглавные буквы';
+                passwordHelp.style.color = 'red';
+                return;
+            } else {
+                passwordHelp.textContent = '';
+            }
+            
+            if (password !== confirmPassword) {
+                confirmPasswordHelp.textContent = 'Пароли не совпадают!';
+                confirmPasswordHelp.style.color = 'red';
+                return;
+            } else {
+                confirmPasswordHelp.textContent = '';
+            }
+
+            const formData = { name, nickname, mail, password };
+
+            try {
+                const response = await fetch('http://127.0.0.1:4000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    alert('Регистрация успешна!');
+                    window.location.href = `index.html?name=${encodeURIComponent(name)}&nickname=${encodeURIComponent(nickname)}&mail=${encodeURIComponent(mail)}`;
+                } else {
+                    alert(data.message || 'Ошибка регистрации');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        });
+
+         document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                mail: e.target.mail.value,
+                password: e.target.password.value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:3000/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(data.message || 'Ошибка авторизации');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+            }
+        });
+    </script>
+</body>
+</html>
