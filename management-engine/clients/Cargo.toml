@@ -1,0 +1,8 @@
+[package]
+name = "clients"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+models = { path = "../models" }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "any", "postgres", "uuid", "time"] }
