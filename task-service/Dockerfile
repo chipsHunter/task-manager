@@ -28,6 +28,4 @@ COPY ./config ./config
 
 ENV CONFIG_PATH=/app/config/local.yaml
 
-EXPOSE 8082
-
 CMD ["./task-service"]

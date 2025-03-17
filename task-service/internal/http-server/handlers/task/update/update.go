@@ -1,4 +1,4 @@
-package save
+package update
 
 import (
 	"errors"
@@ -16,21 +16,21 @@ import (
 )
 
 type Request struct {
+	Id          int    `json:"id" validate:"required"`
 	Name        string `json:"name" validate:"required"`
 	Description string `json:"description,omitempty"`
 	Status      string `json:"status,omitempty"`
 	Author      string `json:"author,omitempty" validate:"required"`
-	Type        string `json:"type,omitempty" `
+	Type        string `json:"type,omitempty"`
 }
 
-//go:generate go run github.com/vektra/mockery/v2@v2.46.3	 --name=URLSaver
-type TaskSaver interface {
-	SaveTask(taskToSave task_model.Task) error
+type TaskUpdater interface {
+	UpdateTask(taskToUpdate task_model.Task) error
 }
 
-func New(log *slog.Logger, taskSaver TaskSaver) http.HandlerFunc {
+func New(log *slog.Logger, taskUpdater TaskUpdater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.url.save.New"
+		const op = "handlers.task.update.New"
 
 		log := log.With(
 			slog.String("op", op),
@@ -42,16 +42,12 @@ func New(log *slog.Logger, taskSaver TaskSaver) http.HandlerFunc {
 		err := render.DecodeJSON(r.Body, &req)
 		if errors.Is(err, io.EOF) {
 			log.Error("request body is empty")
-
 			render.JSON(w, r, resp.Error("empty request"))
-
 			return
 		}
 		if err != nil {
 			log.Error("failed to decode request body", sl.Err(err))
-
 			render.JSON(w, r, resp.Error("failed to decode request"))
-
 			return
 		}
 
@@ -59,32 +55,28 @@ func New(log *slog.Logger, taskSaver TaskSaver) http.HandlerFunc {
 
 		if err := validator.New().Struct(req); err != nil {
 			validateErr := err.(validator.ValidationErrors)
-
 			log.Error("invalid request", sl.Err(err))
-
 			render.JSON(w, r, resp.ValidationError(validateErr))
-
 			return
 		}
-		var task task_model.Task
-		task.Name = req.Name
-		task.Description = req.Description
-		task.Status = req.Status
-		task.Author = req.Author
-		task.Type = req.Type
 
-		err = taskSaver.SaveTask(task)
+		task := task_model.Task{
+			Id:          req.Id,
+			Name:        req.Name,
+			Description: req.Description,
+			Status:      req.Status,
+			Author:      req.Author,
+			Type:        req.Type,
+		}
 
+		err = taskUpdater.UpdateTask(task)
 		if err != nil {
-			log.Error("failed to add task", sl.Err(err))
-
-			render.JSON(w, r, resp.Error("failed to add url"))
-
+			log.Error("failed to update task", sl.Err(err))
+			render.JSON(w, r, resp.Error("failed to update task"))
 			return
 		}
 
-		log.Info("task added", slog.String("name", task.Name))
-
+		log.Info("task updated", slog.String("name", task.Name))
 		responseOK(w, r)
 	}
 }
