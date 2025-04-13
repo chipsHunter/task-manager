@@ -1,15 +1,32 @@
 package response
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
 type Response struct {
-	Status string `json:"status"`
-	Error  string `json:"error,omitempty"`
+	Status string      `json:"status"`
+	Error  string      `json:"error,omitempty"`
+	Data   interface{} `json:"data,omitempty"`
+}
+
+func OKWithData(data interface{}) Response {
+	return Response{
+		Status: "success",
+		Data:   data,
+	}
+}
+
+// Helper function to send the response as JSON
+func SendResponse(w http.ResponseWriter, r *http.Request, response Response) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 }
 
 const (

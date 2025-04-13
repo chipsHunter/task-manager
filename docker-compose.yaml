@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+    networks:
+      - db
+    restart: unless-stopped
+
+
+  task-service:
+    build:
+      context: ./task-service
+      dockerfile: Dockerfile
+    container_name: task-service-app
+    volumes:
+      - "./task-service/storage/storage.db:/app/storage/storage.db"
+    environment:
+      DB_HOST: my-postgres-db
+      DB_PORT: 5432
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+      DB_NAME: mydatabase
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+    networks:
+      - db
+      - backend
+
+  nginx:
+    build:
+      context: ./front
+    container_name: nginx-app
+    ports:
+      - "8080:80"
+    networks:
+      - backend
+
+volumes:
+  pgdata:
+
+networks:
+  db:
+    driver: bridge
+  backend:
+    driver: bridge
+
