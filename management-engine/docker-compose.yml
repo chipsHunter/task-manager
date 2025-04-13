@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16
+    container_name: user_management_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hvhvhv1717
+      POSTGRES_DB: user_management
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - user_management_network
+    healthcheck:
+      # Добавляем проверку готовности
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d user_management" ]
+      interval: 5s
+      retries: 5
+      timeout: 3s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rust_app
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy # Теперь `app` запустится только когда `db` готов
+    environment:
+      DATABASE_URL: postgres://postgres:hvhvhv1717@db/user_management
+      SQLX_OFFLINE: "true"
+      RUST_LOG: info
+    env_file:
+      - .env
+    ports:
+      - "4000:4000"
+    volumes:
+      - .:/app
+    networks:
+      - user_management_network
+    command: [ "cargo", "run" ]
+
+volumes:
+  postgres_data:
+
+
+networks:
+  user_management_network:
